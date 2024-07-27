@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate hook
 import DarkModeSwitcher from "../components/DarkModeSwitcher";
 import MainColorSwitcher from "../components/MainColorSwitcher";
 import logoUrl from "../assets/images/logo.svg";
@@ -14,6 +15,8 @@ function Main() {
         username: "",
         password: "",
     });
+
+    const navigate = useNavigate(); // Initialize the navigation function
 
     const handleLoginChange = (e: { target: { name: any; value: any; }; }) => {
         setLoginData({
@@ -42,8 +45,10 @@ function Main() {
                     icon: 'success',
                     title: 'Success!',
                     text: 'Logged in successfully!',
+                }).then(() => {
+                    // Redirect to the home page
+                    navigate("/"); // Change this path to your desired home page
                 });
-                // Redirect or perform other actions after successful login
             })
             .catch(error => {
                 console.error('There was an error logging in:', error);

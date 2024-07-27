@@ -19,7 +19,6 @@ function Main() {
     passwordConfirmation: '',
     roleId: '',
   });
-
   const [loginData, setLoginData] = useState({
     email: 'rafamceti@gmail.com',
     password: 'Dmtml1'

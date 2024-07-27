@@ -41,11 +41,6 @@ const initialState: SideMenuState = {
       pathname: "/create-collateral",
       title: "Create collateral",
     },
-    {
-      icon: "Activity",
-      pathname: "/login",
-      title: "Login",
-    },
   ],
 };
 

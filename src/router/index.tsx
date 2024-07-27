@@ -1,6 +1,5 @@
-import { useRoutes } from "react-router-dom";
+import { useRoutes, Navigate } from "react-router-dom";
 import SideMenu from "../layouts/SideMenu";
-import DashboardOverview1 from "../pages/DashboardOverview1";
 import Register from "../pages/Register";
 import Customers from "../pages/Customers";
 import AddUser from "../pages/AddUser";
@@ -8,13 +7,18 @@ import SysUsers from "../pages/SysUsers";
 import CreateLoan from "../pages/CreateLoan";
 import CreateCollateral from "../pages/CreateCollateral";
 import Login from "../components/Login";
+import ProtectedRoute from "../utils/ProtectedRoute"; // Import the protected route component
 
 function Router() {
   const routes = [
     {
       path: "/",
-      element: <SideMenu />,
+      element: <ProtectedRoute />, // Wrap protected routes
       children: [
+        {
+          path: "/",
+          element: <SideMenu/>, // Default redirect
+        },
         {
           path: "register",
           element: <Register />,
@@ -25,7 +29,7 @@ function Router() {
         },
         {
           path: "create-customer",
-          element: <AddUser/>,
+          element: <AddUser />,
         },
         {
           path: "users",
@@ -39,11 +43,16 @@ function Router() {
           path: "create-collateral",
           element: <CreateCollateral />,
         },
-        {
-          path: "login",
-          element: <Login />,
-        },
       ],
+    },
+    {
+      path: "/login",
+      element: <Login />,
+    },
+    // Redirect to login page if no routes match
+    {
+      path: "*",
+      element: <Navigate to="/login" />,
     },
   ];
 
