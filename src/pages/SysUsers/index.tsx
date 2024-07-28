@@ -6,9 +6,13 @@ import axios from "axios";
 
 function Main() {
     const [users, setUsers] = useState([]);
-
+    const [token, setToken] = useState(localStorage.getItem('authToken') || '');
     useEffect(() => {
-        axios.get('http://localhost:8081/api/register')
+        axios.get('http://localhost:8081/api/register',{
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(response => {
                 if (response.data.ResponseHeader.StatusCode === "200") {
                     setUsers(response.data.ResponseBody);

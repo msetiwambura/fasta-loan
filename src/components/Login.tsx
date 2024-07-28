@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate hook
+import { useNavigate } from "react-router-dom";
 import DarkModeSwitcher from "../components/DarkModeSwitcher";
 import MainColorSwitcher from "../components/MainColorSwitcher";
 import logoUrl from "../assets/images/logo.svg";
@@ -16,7 +16,7 @@ function Main() {
         password: "",
     });
 
-    const navigate = useNavigate(); // Initialize the navigation function
+    const navigate = useNavigate();
 
     const handleLoginChange = (e: { target: { name: any; value: any; }; }) => {
         setLoginData({
@@ -34,10 +34,8 @@ function Main() {
         })
             .then(response => {
                 const token = response.data.ResponseBody.Token;
-                // Store token in localStorage
                 localStorage.setItem('authToken', token);
 
-                // Optionally, store user details if needed
                 const userDetails = response.data.ResponseBody.UserDetails;
                 localStorage.setItem('userDetails', JSON.stringify(userDetails));
 
@@ -45,9 +43,12 @@ function Main() {
                     icon: 'success',
                     title: 'Success!',
                     text: 'Logged in successfully!',
-                }).then(() => {
-                    // Redirect to the home page
-                    navigate("/"); // Change this path to your desired home page
+                    timer: 400, // 2 seconds timer
+                    showConfirmButton: false,
+                    willClose: () => {
+                        // Redirect to the home page immediately after the alert closes
+                        navigate("/"); // Replace with your desired route
+                    }
                 });
             })
             .catch(error => {

@@ -14,6 +14,7 @@ import {
 import Button from "../../base-components/Button";
 import Swal from "sweetalert2";
 import axios from "axios";
+import {useNavigate} from "react-router-dom";
 
 function Main() {
     const [formData, setFormData] = useState({
@@ -33,16 +34,15 @@ function Main() {
         AnnualIncome: "",
         CreditScore: "",
     });
+    const [token] = useState(localStorage.getItem('chanelToken') || '');
+    const navigate = useNavigate(); // Initialize navigate
 
     const handleChange = (e: { target: { name: any; value: any; }; }) => {
         const { name, value } = e.target;
-
-        // Parse specific fields as numbers
-        if (name === "AnnualIncome" || name === "CreditScore") {
-            setFormData({ ...formData, [name]: parseFloat(value) || 0 });
-        } else {
-            setFormData({ ...formData, [name]: value });
-        }
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: name === "AnnualIncome" || name === "CreditScore" ? parseFloat(value) || 0 : value,
+        }));
     };
 
     const handleSubmit = async (e: { preventDefault: () => void; }) => {
@@ -52,7 +52,7 @@ function Main() {
                 headers: {
                     'ChannelId': 'LN',
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJDaGFubmVsSUQiOiJMTiIsIklQQWRkcmVzcyI6IjEyNy4wLjAuMSIsImV4cCI6MTcyMDk2MTkxMn0.MmVdc2B4Aw00vLcBpTiumzvl8DLYguAcvsVFnB1diu8',
+                    'Authorization': `Bearer ${token}`,
                 },
             });
 
@@ -64,29 +64,35 @@ function Main() {
                     icon: 'success',
                     title: 'Success!',
                     text: 'Customer created successfully.',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    willClose(popup) {
+                        navigate('/customers')
+                    }
                 });
+
+                // Redirect to customers page after 400 milliseconds
+                // setTimeout(() => {
+                //     navigate('/customers'); // Updated navigation
+                // }, 400);
             }
         } catch (error) {
-            // Check if error is an Axios error
+            let errorMessage = 'Failed to create customer.';
             if (axios.isAxiosError(error) && error.response) {
-                const errorMessage = error.response.data.ResponseHeader.StatusDesc || 'Failed to create customer.';
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: errorMessage,
-                });
+                errorMessage = error.response.data.ResponseHeader.StatusDesc || errorMessage;
             } else {
-                // Handle network errors or unexpected errors
                 console.error('Error: []', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Failed to create customer.',
-                });
             }
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: errorMessage,
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#d33', // Make the OK button more noticeable
+            });
         }
     };
-
 
     return (
         <>

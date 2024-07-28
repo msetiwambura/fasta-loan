@@ -22,7 +22,11 @@ function Router() {
             children: [
                 {
                     path: "register",
-                    element: <Register />,
+                    element: (
+                        <ProtectedRoute>
+                            <Register />
+                        </ProtectedRoute>
+                    ),
                 },
                 {
                     path: "customers",

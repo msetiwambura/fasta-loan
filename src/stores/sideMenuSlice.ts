@@ -29,7 +29,7 @@ const initialState: SideMenuState = {
     {
       icon: "Activity",
       pathname: "/create-customer",
-      title: "Create user",
+      title: "Create customer",
     },
     {
       icon: "Activity",
