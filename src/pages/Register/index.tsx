@@ -19,13 +19,14 @@ function Main() {
     passwordConfirmation: '',
     roleId: '',
   });
-  const [loginData, setLoginData] = useState({
-    email: 'rafamceti@gmail.com',
-    password: 'Dmtml1'
-  });
+// localStorage.getItem("authToken")
+//   const [loginData, setLoginData] = useState({
+//     email: 'rafamceti@gmail.com',
+//     password: 'Dmtml1'
+//   });
 
   const [roles, setRoles] = useState([]);
-  const [token, setToken] = useState(localStorage.getItem('token') || '');
+  const [token, setToken] = useState(localStorage.getItem('authToken') || '');
 
   useEffect(() => {
     if (token) {
@@ -48,12 +49,12 @@ function Main() {
     });
   };
 
-  const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLoginData({
-      ...loginData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  // const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setLoginData({
+  //     ...loginData,
+  //     [e.target.name]: e.target.value,
+  //   });
+  // };
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,29 +95,29 @@ function Main() {
         });
   };
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    axios.post('http://localhost:8081/api/login', loginData)
-        .then(response => {
-          const { Token } = response.data.ResponseBody;
-          localStorage.setItem('token', Token); // Save token to localStorage
-          setToken(Token);
-          console.log('Logged in successfully:', response.data);
-          Swal.fire({
-            icon: 'success',
-            title: 'Success!',
-            text: 'Logged in successfully!',
-          });
-        })
-        .catch(error => {
-          console.error('Error logging in:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'Invalid login credentials!',
-          });
-        });
-  };
+  // const handleLogin = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   axios.post('http://localhost:8081/api/login', loginData)
+  //       .then(response => {
+  //         const { Token } = response.data.ResponseBody;
+  //         localStorage.setItem('token', Token); // Save token to localStorage
+  //         setToken(Token);
+  //         console.log('Logged in successfully:', response.data);
+  //         Swal.fire({
+  //           icon: 'success',
+  //           title: 'Success!',
+  //           text: 'Logged in successfully!',
+  //         });
+  //       })
+  //       .catch(error => {
+  //         console.error('Error logging in:', error);
+  //         Swal.fire({
+  //           icon: 'error',
+  //           title: 'Error!',
+  //           text: 'Invalid login credentials!',
+  //         });
+  //       });
+  // };
 
   return (
       <>
@@ -235,62 +236,62 @@ function Main() {
                     >
                       Register
                     </Button>
-                    <Button
-                        variant="outline-secondary"
-                        className="w-full px-4 py-3 mt-3 align-top xl:w-32 xl:mt-0"
-                        onClick={() => setFormData({ ...formData, roleId: '' })}
-                    >
-                      Clear
-                    </Button>
+                    {/*<Button*/}
+                    {/*    variant="outline-secondary"*/}
+                    {/*    className="w-full px-4 py-3 mt-3 align-top xl:w-32 xl:mt-0"*/}
+                    {/*    onClick={() => setFormData({ ...formData, roleId: '' })}*/}
+                    {/*>*/}
+                    {/*  Clear*/}
+                    {/*</Button>*/}
                   </div>
                 </div>
               </div>
               {/* END: Register Form */}
               {/* BEGIN: Login Form */}
-              <div className="flex h-screen py-5 my-10 xl:h-auto xl:py-0 xl:my-0">
-                <div className="w-full px-5 py-8 mx-auto my-auto bg-white rounded-md shadow-md xl:ml-20 dark:bg-darkmode-600 xl:bg-transparent sm:px-8 xl:p-0 xl:shadow-none sm:w-3/4 lg:w-2/4 xl:w-auto">
-                  <h2 className="text-2xl font-bold text-center intro-x xl:text-3xl xl:text-left">
-                    Sign In
-                  </h2>
-                  <div className="mt-8 intro-x">
-                    <FormInput
-                        type="text"
-                        name="email"
-                        className="block px-4 py-3 intro-x min-w-full xl:min-w-[450px]"
-                        placeholder="Email"
-                        value={loginData.email}
-                        onChange={handleLoginChange}
-                    />
-                    <FormInput
-                        type="password"
-                        name="password"
-                        value={loginData.password}
-                        onChange={handleLoginChange}
-                        className="block px-4 py-3 mt-4 intro-x min-w-full xl:min-w-[350px]"
-                        placeholder="Password"
-                    />
-                  </div>
-                  <div className="flex items-center mt-4 text-xs intro-x text-slate-600 dark:text-slate-500 sm:text-sm">
-                    <FormCheck.Input
-                        id="remember-me"
-                        type="checkbox"
-                        className="mr-2 border"
-                    />
-                    <label className="cursor-pointer select-none" htmlFor="remember-me">
-                      Remember me
-                    </label>
-                  </div>
-                  <div className="mt-5 text-center intro-x xl:mt-8 xl:text-left">
-                    <Button
-                        variant="primary"
-                        className="w-full px-4 py-3 align-top xl:w-32 xl:mr-3"
-                        onClick={handleLogin}
-                    >
-                      Sign In
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              {/*<div className="flex h-screen py-5 my-10 xl:h-auto xl:py-0 xl:my-0">*/}
+              {/*  <div className="w-full px-5 py-8 mx-auto my-auto bg-white rounded-md shadow-md xl:ml-20 dark:bg-darkmode-600 xl:bg-transparent sm:px-8 xl:p-0 xl:shadow-none sm:w-3/4 lg:w-2/4 xl:w-auto">*/}
+              {/*    <h2 className="text-2xl font-bold text-center intro-x xl:text-3xl xl:text-left">*/}
+              {/*      Sign In*/}
+              {/*    </h2>*/}
+              {/*    <div className="mt-8 intro-x">*/}
+              {/*      <FormInput*/}
+              {/*          type="text"*/}
+              {/*          name="email"*/}
+              {/*          className="block px-4 py-3 intro-x min-w-full xl:min-w-[450px]"*/}
+              {/*          placeholder="Email"*/}
+              {/*          value={loginData.email}*/}
+              {/*          onChange={handleLoginChange}*/}
+              {/*      />*/}
+              {/*      <FormInput*/}
+              {/*          type="password"*/}
+              {/*          name="password"*/}
+              {/*          value={loginData.password}*/}
+              {/*          onChange={handleLoginChange}*/}
+              {/*          className="block px-4 py-3 mt-4 intro-x min-w-full xl:min-w-[350px]"*/}
+              {/*          placeholder="Password"*/}
+              {/*      />*/}
+              {/*    </div>*/}
+              {/*    <div className="flex items-center mt-4 text-xs intro-x text-slate-600 dark:text-slate-500 sm:text-sm">*/}
+              {/*      <FormCheck.Input*/}
+              {/*          id="remember-me"*/}
+              {/*          type="checkbox"*/}
+              {/*          className="mr-2 border"*/}
+              {/*      />*/}
+              {/*      <label className="cursor-pointer select-none" htmlFor="remember-me">*/}
+              {/*        Remember me*/}
+              {/*      </label>*/}
+              {/*    </div>*/}
+              {/*    <div className="mt-5 text-center intro-x xl:mt-8 xl:text-left">*/}
+              {/*      <Button*/}
+              {/*          variant="primary"*/}
+              {/*          className="w-full px-4 py-3 align-top xl:w-32 xl:mr-3"*/}
+              {/*          onClick={handleLogin}*/}
+              {/*      >*/}
+              {/*        Sign In*/}
+              {/*      </Button>*/}
+              {/*    </div>*/}
+              {/*  </div>*/}
+              {/*</div>*/}
               {/* END: Login Form */}
             </div>
           </div>

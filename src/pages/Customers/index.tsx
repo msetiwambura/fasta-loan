@@ -6,13 +6,14 @@ import axios from "axios";
 
 function Main() {
     const [customers, setCustomers] = useState([]);
+    const [token, setToken] = useState(localStorage.getItem('chanelToken') || '');
 
     useEffect(() => {
         axios.get('http://localhost:8080/api/customers', {
             headers: {
                 'ChannelID': 'LN',
                 'IPAddress': '127.0.0.1',
-                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJDaGFubmVsSUQiOiJMTiIsIklQQWRkcmVzcyI6IjEyNy4wLjAuMSIsImV4cCI6MTcyMDk2MTkxMn0.MmVdc2B4Aw00vLcBpTiumzvl8DLYguAcvsVFnB1diu8'
+                'Authorization': `Bearer ${token}`
             }
         })
             .then(response => {

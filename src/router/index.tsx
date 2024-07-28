@@ -1,4 +1,4 @@
-import { useRoutes, Navigate } from "react-router-dom";
+import { useRoutes, Navigate, Outlet } from "react-router-dom";
 import SideMenu from "../layouts/SideMenu";
 import Register from "../pages/Register";
 import Customers from "../pages/Customers";
@@ -7,56 +7,76 @@ import SysUsers from "../pages/SysUsers";
 import CreateLoan from "../pages/CreateLoan";
 import CreateCollateral from "../pages/CreateCollateral";
 import Login from "../components/Login";
-import ProtectedRoute from "../utils/ProtectedRoute"; // Import the protected route component
+import ProtectedRoute from "../utils/ProtectedRoute";
 
 function Router() {
-  const routes = [
-    {
-      path: "/",
-      element: <ProtectedRoute />, // Wrap protected routes
-      children: [
+    const routes = [
         {
-          path: "/",
-          element: <SideMenu/>, // Default redirect
+            path: "/",
+            element: (
+                <>
+                    <SideMenu />
+                    <Outlet />
+                </>
+            ),
+            children: [
+                {
+                    path: "register",
+                    element: <Register />,
+                },
+                {
+                    path: "customers",
+                    element: (
+                        <ProtectedRoute>
+                            <Customers />
+                        </ProtectedRoute>
+                    ),
+                },
+                {
+                    path: "create-customer",
+                    element: (
+                        <ProtectedRoute>
+                            <AddUser />
+                        </ProtectedRoute>
+                    ),
+                },
+                {
+                    path: "users",
+                    element: (
+                        <ProtectedRoute>
+                            <SysUsers />
+                        </ProtectedRoute>
+                    ),
+                },
+                {
+                    path: "create-loan",
+                    element: (
+                        <ProtectedRoute>
+                            <CreateLoan />
+                        </ProtectedRoute>
+                    ),
+                },
+                {
+                    path: "create-collateral",
+                    element: (
+                        <ProtectedRoute>
+                            <CreateCollateral />
+                        </ProtectedRoute>
+                    ),
+                },
+            ],
         },
         {
-          path: "register",
-          element: <Register />,
+            path: "/login",
+            element: <Login />,
         },
         {
-          path: "customers",
-          element: <Customers />,
+            path: "*",
+            element: <Navigate to="/login" />,
         },
-        {
-          path: "create-customer",
-          element: <AddUser />,
-        },
-        {
-          path: "users",
-          element: <SysUsers />,
-        },
-        {
-          path: "create-loan",
-          element: <CreateLoan />,
-        },
-        {
-          path: "create-collateral",
-          element: <CreateCollateral />,
-        },
-      ],
-    },
-    {
-      path: "/login",
-      element: <Login />,
-    },
-    // Redirect to login page if no routes match
-    {
-      path: "*",
-      element: <Navigate to="/login" />,
-    },
-  ];
+    ];
 
-  return useRoutes(routes);
+    return useRoutes(routes);
 }
 
 export default Router;
