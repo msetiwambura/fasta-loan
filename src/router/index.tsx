@@ -2,12 +2,14 @@ import { useRoutes, Navigate, Outlet } from "react-router-dom";
 import SideMenu from "../layouts/SideMenu";
 import Register from "../pages/Register";
 import Customers from "../pages/Customers";
-import AddUser from "../pages/AddUser";
+import AddUser from "../pages/AddCustomer";
 import SysUsers from "../pages/SysUsers";
 import CreateLoan from "../pages/CreateLoan";
 import CreateCollateral from "../pages/CreateCollateral";
 import Login from "../components/Login";
 import ProtectedRoute from "../utils/ProtectedRoute";
+import Loans from "../pages/Loans";
+import Modal from "../pages/Modal";
 
 function Router() {
     const routes = [
@@ -68,6 +70,30 @@ function Router() {
                         </ProtectedRoute>
                     ),
                 },
+                {
+                    path: "loans",
+                    element: (
+                        <ProtectedRoute>
+                            <Loans />
+                        </ProtectedRoute>
+                    ),
+                },
+                {
+                    path: "modal",
+                    element: (
+                        <ProtectedRoute>
+                            <Modal />
+                        </ProtectedRoute>
+                    ),
+                },
+                // {
+                //     path: "admin",
+                //     element: (
+                //         <ProtectedRoute>
+                //             <Administration />
+                //         </ProtectedRoute>
+                //     ),
+                // },
             ],
         },
         {

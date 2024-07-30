@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { PreviewComponent, Preview, Source, Highlight } from "../../base-components/PreviewComponent";
+import { PreviewComponent, Preview } from "../../base-components/PreviewComponent";
 import Table from "../../base-components/Table";
 import Button from "../../base-components/Button";
-import { Dialog } from "../../base-components/Headless";
+import { Dialog, Menu } from "../../base-components/Headless";
+import { FormLabel, FormInput, FormSelect } from "../../base-components/Form";
+import Lucide from "../../base-components/Lucide";
+import Swal from 'sweetalert2';
+import { useNavigate } from "react-router-dom";
 
 interface Customer {
     Id: number;
@@ -24,11 +28,13 @@ interface Customer {
 function Main() {
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [token] = useState(localStorage.getItem('chanelToken') || '');
-    const [basicModalPreview, setBasicModalPreview] = useState(false);
+    const [headerFooterModalPreview, setHeaderFooterModalPreview] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-    const [currentPage, setCurrentPage] = useState(1); // Current page state
-    const [totalPages, setTotalPages] = useState(1); // Total number of pages
-    const [itemsPerPage] = useState(10); // Items per page
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [itemsPerPage] = useState(10);
+    const sendButtonRef = useRef(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         axios.get(`http://localhost:8080/api/customers?page=${currentPage}&limit=${itemsPerPage}`, {
@@ -39,11 +45,9 @@ function Main() {
             },
         })
             .then(response => {
-
-
                 if (response.data.ResponseHeader.StatusCode === 1000) {
                     setCustomers(response.data.ResponseBody.Customers);
-                    setTotalPages(response.data.ResponseBody.TotalPages); // Set total pages from response
+                    setTotalPages(response.data.ResponseBody.TotalPages);
                 } else {
                     console.error('Error fetching customers:', response.data.ResponseHeader.StatusDesc);
                 }
@@ -55,13 +59,72 @@ function Main() {
 
     const handleViewClick = (customer: Customer) => {
         setSelectedCustomer(customer);
-        setBasicModalPreview(true);
+        setHeaderFooterModalPreview(true);
     };
 
     const handlePageChange = (page: number) => {
         if (page >= 1 && page <= totalPages) {
             setCurrentPage(page);
         }
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        if (selectedCustomer) {
+            const { name, value } = e.target;
+            let updatedValue: string | number = value;
+
+            // Handle CreditScore as number
+            if (name === 'CreditScore') {
+                updatedValue = parseInt(value, 10);
+            }
+
+            setSelectedCustomer({
+                ...selectedCustomer,
+                [name]: updatedValue,
+            });
+        }
+    };
+
+    const handleUpdate = () => {
+        if (selectedCustomer) {
+            axios.put(`http://localhost:8080/api/customers/${selectedCustomer.Id}`, selectedCustomer, {
+                headers: {
+                    'ChannelID': 'LN',
+                    'IPAddress': '127.0.0.1',
+                    'Authorization': `Bearer ${token}`,
+                },
+            })
+                .then(response => {
+                    if (response.data.ResponseHeader.StatusCode === 1000) {
+                        setCustomers(prevCustomers =>
+                            prevCustomers.map(c => c.Id === selectedCustomer.Id ? selectedCustomer : c)
+                        );
+                        setHeaderFooterModalPreview(false);
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Customer details updated successfully!',
+                            icon: 'success',
+                            confirmButtonText: 'OK',
+                            confirmButtonColor: '#3085d6',
+                        }).then(() => {
+                            // Delay the navigation by 500 milliseconds
+                            setTimeout(() => {
+                                navigate('/customers'); // Adjust the path if needed
+                            }, 500);
+                        });
+                    } else {
+                        console.error('Error updating customer:', response.data.ResponseHeader.StatusDesc);
+                    }
+                })
+                .catch(error => {
+                    console.error('There was an error updating the customer:', error);
+                });
+        }
+    };
+
+    const closeModal = () => {
+        setHeaderFooterModalPreview(false);
+        setSelectedCustomer(null);
     };
 
     return (
@@ -121,11 +184,6 @@ function Main() {
                                     </Table>
                                 </div>
                             </Preview>
-                            <Source>
-                                <Highlight>
-                                    {/* Place your code here */}
-                                </Highlight>
-                            </Source>
                         </div>
                     </PreviewComponent>
                 </div>
@@ -142,42 +200,167 @@ function Main() {
                 </Button>
             </div>
 
-            {/* BEGIN: Modal Content */}
-            {selectedCustomer && (
-                <>
-                    <div
-                        className="fixed inset-0 bg-black bg-opacity-50 z-40"
-                        onClick={() => setBasicModalPreview(false)}
-                    />
-                    <Dialog
-                        open={basicModalPreview}
-                        onClose={() => setBasicModalPreview(false)}
-                        className="fixed inset-0 flex items-center justify-center z-50"
-                    >
-                        <div className="bg-white p-6 rounded-lg w-full max-w-3xl mx-4 shadow-lg">
-                            <h2 className="text-3xl font-bold mb-6 text-center">Customer Details</h2>
-                            <div className="space-y-4">
-                                <p><strong>First Name:</strong> {selectedCustomer.FirstName}</p>
-                                <p><strong>Last Name:</strong> {selectedCustomer.LastName}</p>
-                                <p><strong>Email:</strong> {selectedCustomer.Email}</p>
-                                <p><strong>Gender:</strong> {selectedCustomer.Gender}</p>
-                                <p><strong>National ID:</strong> {selectedCustomer.NationalID}</p>
-                                <p><strong>Phone Number:</strong> {selectedCustomer.PhoneNumber}</p>
-                                <p><strong>Address:</strong> {selectedCustomer.Address}</p>
-                                <p><strong>City:</strong> {selectedCustomer.City}</p>
-                                <p><strong>Country:</strong> {selectedCustomer.Country}</p>
-                                <p><strong>Employment Status:</strong> {selectedCustomer.EmploymentStatus}</p>
-                                <p><strong>Annual Income:</strong> {selectedCustomer.AnnualIncome}</p>
-                                <p><strong>Credit Score:</strong> {selectedCustomer.CreditScore}</p>
-                            </div>
-                            <div className="mt-6 flex justify-end">
-                                <Button variant="secondary" onClick={() => setBasicModalPreview(false)}>Close</Button>
-                            </div>
-                        </div>
-                    </Dialog>
-                </>
-            )}
-            {/* END: Modal Content */}
+            {/* New Modal Content */}
+            <Dialog
+                open={headerFooterModalPreview}
+                onClose={closeModal}
+                initialFocus={sendButtonRef}
+                className="fixed inset-0 flex items-center justify-center z-50"
+            >
+                <Dialog.Panel className="custom-modal-width bg-white p-6 rounded-lg shadow-lg">
+                    <Dialog.Title>
+                        <h2 className="text-base font-medium">Edit Customer Details</h2>
+                    </Dialog.Title>
+                    <Dialog.Description className="grid grid-cols-12 gap-4 gap-y-3">
+                        {selectedCustomer && (
+                            <>
+                                <div className="col-span-12 sm:col-span-6">
+                                    <FormLabel htmlFor="FirstName">First Name</FormLabel>
+                                    <FormInput
+                                        id="FirstName"
+                                        name="FirstName"
+                                        type="text"
+                                        value={selectedCustomer.FirstName}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+                                <div className="col-span-12 sm:col-span-6">
+                                    <FormLabel htmlFor="LastName">Last Name</FormLabel>
+                                    <FormInput
+                                        id="LastName"
+                                        name="LastName"
+                                        type="text"
+                                        value={selectedCustomer.LastName}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+                                <div className="col-span-12 sm:col-span-6">
+                                    <FormLabel htmlFor="Email">Email</FormLabel>
+                                    <FormInput
+                                        id="Email"
+                                        name="Email"
+                                        type="email"
+                                        value={selectedCustomer.Email}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+                                <div className="col-span-12 sm:col-span-6">
+                                    <FormLabel htmlFor="Gender">Gender</FormLabel>
+                                    <FormSelect
+                                        id="Gender"
+                                        name="Gender"
+                                        value={selectedCustomer.Gender}
+                                        onChange={handleInputChange}
+                                    >
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </FormSelect>
+                                </div>
+                                <div className="col-span-12 sm:col-span-6">
+                                    <FormLabel htmlFor="NationalID">National ID</FormLabel>
+                                    <FormInput
+                                        id="NationalID"
+                                        name="NationalID"
+                                        type="text"
+                                        value={selectedCustomer.NationalID}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+                                <div className="col-span-12 sm:col-span-6">
+                                    <FormLabel htmlFor="PhoneNumber">Phone Number</FormLabel>
+                                    <FormInput
+                                        id="PhoneNumber"
+                                        name="PhoneNumber"
+                                        type="text"
+                                        value={selectedCustomer.PhoneNumber}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+                                <div className="col-span-12 sm:col-span-6">
+                                    <FormLabel htmlFor="Address">Address</FormLabel>
+                                    <FormInput
+                                        id="Address"
+                                        name="Address"
+                                        type="text"
+                                        value={selectedCustomer.Address}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+                                <div className="col-span-12 sm:col-span-6">
+                                    <FormLabel htmlFor="City">City</FormLabel>
+                                    <FormInput
+                                        id="City"
+                                        name="City"
+                                        type="text"
+                                        value={selectedCustomer.City}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+                                <div className="col-span-12 sm:col-span-6">
+                                    <FormLabel htmlFor="Country">Country</FormLabel>
+                                    <FormInput
+                                        id="Country"
+                                        name="Country"
+                                        type="text"
+                                        value={selectedCustomer.Country}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+                                <div className="col-span-12 sm:col-span-6">
+                                    <FormLabel htmlFor="EmploymentStatus">Employment Status</FormLabel>
+                                    <FormInput
+                                        id="EmploymentStatus"
+                                        name="EmploymentStatus"
+                                        type="text"
+                                        value={selectedCustomer.EmploymentStatus}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+                                <div className="col-span-12 sm:col-span-6">
+                                    <FormLabel htmlFor="AnnualIncome">Annual Income</FormLabel>
+                                    <FormInput
+                                        id="AnnualIncome"
+                                        name="AnnualIncome"
+                                        type="text"
+                                        value={selectedCustomer.AnnualIncome}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+                                <div className="col-span-12 sm:col-span-6">
+                                    <FormLabel htmlFor="CreditScore">Credit Score</FormLabel>
+                                    <FormInput
+                                        id="CreditScore"
+                                        name="CreditScore"
+                                        type="number"
+                                        value={selectedCustomer.CreditScore}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+                            </>
+                        )}
+                    </Dialog.Description>
+                    <Dialog.Footer>
+                        <Button
+                            type="button"
+                            variant="outline-secondary"
+                            onClick={closeModal}
+                            className="w-20 mr-1"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="primary"
+                            type="button"
+                            className="w-20"
+                            ref={sendButtonRef}
+                            onClick={handleUpdate}
+                        >
+                            Update
+                        </Button>
+                    </Dialog.Footer>
+                </Dialog.Panel>
+            </Dialog>
         </>
     );
 }

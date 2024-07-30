@@ -15,6 +15,7 @@ import axios from "axios";
 import TomSelect from "../../base-components/TomSelect";
 
 function Main() {
+    const [token, setToken] = useState(localStorage.getItem('chanelToken') || '');
     const [formData, setFormData] = useState({
         LoanAmount: "",
         LoanCurrency: "TZS",
@@ -27,7 +28,7 @@ function Main() {
     const [customers, setCustomers] = useState([]);
     const [loanCurrency, setLoanCurrency] = useState("TZS");
     const [loanStatus, setLoanStatus] = useState("Pending");
-    const [customer, setCustomer] = useState("");
+    const [customer, setCustomer] = useState(""); // Initialize with empty string
 
     useEffect(() => {
         const fetchCustomers = async () => {
@@ -36,10 +37,14 @@ function Main() {
                     headers: {
                         'ChannelId': 'LN',
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJDaGFubmVsSUQiOiJMTiIsIklQQWRkcmVzcyI6IjEyNy4wLjAuMSIsImV4cCI6MTcyMDk2MTkxMn0.MmVdc2B4Aw00vLcBpTiumzvl8DLYguAcvsVFnB1diu8',
+                        'Authorization': `Bearer ${token}`,
                     },
                 });
-                setCustomers(response.data.ResponseBody);
+                const fetchedCustomers = response.data.ResponseBody.Customers.map(cust => ({
+                    ...cust,
+                    Id: String(cust.Id), // Convert Id to string for TomSelect
+                }));
+                setCustomers(fetchedCustomers);
             } catch (error) {
                 Swal.fire({
                     icon: 'error',
@@ -50,32 +55,29 @@ function Main() {
         };
 
         fetchCustomers();
-    }, []);
+    }, [token]);
 
-    const handleChange = (e: { target: { name: any; value: any; }; }) => {
+    const handleChange = (e) => {
         const { name, value } = e.target;
-
-        // Parse specific fields as numbers
-        if (["AnnualIncome", "CreditScore", "LoanAmount", "InterestRate"].includes(name)) {
-            setFormData({ ...formData, [name]: parseFloat(value) || 0 });
-        } else {
-            setFormData({ ...formData, [name]: value });
-        }
+        setFormData(prevState => ({
+            ...prevState,
+            [name]: name === "LoanAmount" || name === "InterestRate" ? parseFloat(value) || 0 : value,
+        }));
     };
 
-    const handleSubmit = async (e: { preventDefault: () => void; }) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             const response = await axios.post('http://localhost:8080/api/loans', {
                 ...formData,
                 LoanCurrency: loanCurrency,
                 Status: loanStatus,
-                Customer: customer
+                Customer: Number(customer) // Ensure customer is a number
             }, {
                 headers: {
                     'ChannelId': 'LN',
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer YOUR_TOKEN',
+                    'Authorization': `Bearer ${token}`,
                 },
             });
 
@@ -84,6 +86,15 @@ function Main() {
                     icon: 'success',
                     title: 'Success!',
                     text: 'Loan created successfully.',
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'btn btn-primary' // Custom class if needed
+                    }
+                }).then(() => {
+                    // Redirect to the loans page after a delay
+                    setTimeout(() => {
+                        window.location.href = '/loans'; // Change this to your actual loans page URL
+                    }, 400); // 400 milliseconds delay
                 });
             }
         } catch (error) {
@@ -92,6 +103,10 @@ function Main() {
                 icon: 'error',
                 title: 'Oops...',
                 text: errorMessage,
+                confirmButtonText: 'OK',
+                customClass: {
+                    confirmButton: 'btn btn-primary' // Custom class if needed
+                }
             });
         }
     };
@@ -184,19 +199,23 @@ function Main() {
                                             <div>
                                                 <FormLabel htmlFor="customer">Customer</FormLabel>
                                                 <TomSelect
-                                                    value={customer}
-                                                    onChange={setCustomer}
+                                                    value={String(customer)} // Convert customer to string for TomSelect
+                                                    onChange={(value) => setCustomer(value)} // value is string
                                                     options={{
                                                         placeholder: "Select customer",
                                                     }}
                                                     className="w-full"
                                                 >
                                                     <option value="">Select Customer</option>
-                                                    {customers.map((customer) => (
-                                                        <option key={customer.Id} value={customer.Id}>
-                                                            {customer.FirstName} {customer.LastName}
-                                                        </option>
-                                                    ))}
+                                                    {Array.isArray(customers) && customers.length > 0 ? (
+                                                        customers.map((cust) => (
+                                                            <option key={cust.Id} value={cust.Id}>
+                                                                {cust.FirstName} {cust.LastName}
+                                                            </option>
+                                                        ))
+                                                    ) : (
+                                                        <option value="" disabled>No customers available</option>
+                                                    )}
                                                 </TomSelect>
                                             </div>
                                             <Button variant="primary" className="mt-5" type="submit">

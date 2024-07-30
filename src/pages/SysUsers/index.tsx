@@ -1,14 +1,15 @@
 import _ from "lodash";
 import Table from "../../base-components/Table";
-import { PreviewComponent, Preview, Source, Highlight } from "../../base-components/PreviewComponent";
+import { PreviewComponent, Preview } from "../../base-components/PreviewComponent";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
 function Main() {
     const [users, setUsers] = useState([]);
     const [token, setToken] = useState(localStorage.getItem('authToken') || '');
+
     useEffect(() => {
-        axios.get('http://localhost:8081/api/register',{
+        axios.get('http://localhost:8081/api/register', {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -23,7 +24,7 @@ function Main() {
             .catch(error => {
                 console.error('There was an error fetching the users:', error);
             });
-    }, []);
+    }, [token]);
 
     return (
         <>
@@ -35,11 +36,6 @@ function Main() {
                     <PreviewComponent className="intro-y box">
                         {({ toggle }) => (
                             <>
-                                <div className="flex flex-col items-center p-5 border-b sm:flex-row border-slate-200/60">
-                                    <h2 className="mr-auto text-base font-medium">
-                                        Users
-                                    </h2>
-                                </div>
                                 <div className="p-5">
                                     <Preview>
                                         <div className="overflow-x-auto">
@@ -57,7 +53,7 @@ function Main() {
                                                             Email
                                                         </Table.Th>
                                                         <Table.Th className="whitespace-nowrap">
-                                                            Role
+                                                            Role Name
                                                         </Table.Th>
                                                     </Table.Tr>
                                                 </Table.Thead>
@@ -65,10 +61,10 @@ function Main() {
                                                     {users.map((user, index) => (
                                                         <Table.Tr key={user.ID}>
                                                             <Table.Td>{index + 1}</Table.Td>
-                                                            <Table.Td>{user.firstName}</Table.Td>
-                                                            <Table.Td>{user.lastName}</Table.Td>
-                                                            <Table.Td>{user.email}</Table.Td>
-                                                            <Table.Td>{user.roleId}</Table.Td>
+                                                            <Table.Td>{user.FirstName}</Table.Td>
+                                                            <Table.Td>{user.LastName}</Table.Td>
+                                                            <Table.Td>{user.Email}</Table.Td>
+                                                            <Table.Td>{user.Role.Name}</Table.Td> {/* Display the Role name */}
                                                         </Table.Tr>
                                                     ))}
                                                 </Table.Tbody>
