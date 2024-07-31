@@ -10,6 +10,7 @@ import Login from "../components/Login";
 import ProtectedRoute from "../utils/ProtectedRoute";
 import Loans from "../pages/Loans";
 import Modal from "../pages/Modal";
+import Payment from "../pages/Payment";
 
 function Router() {
     const routes = [
@@ -75,6 +76,14 @@ function Router() {
                     element: (
                         <ProtectedRoute>
                             <Loans />
+                        </ProtectedRoute>
+                    ),
+                },
+                {
+                    path: "re-payment",
+                    element: (
+                        <ProtectedRoute>
+                            <Payment />
                         </ProtectedRoute>
                     ),
                 },

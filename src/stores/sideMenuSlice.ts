@@ -92,6 +92,17 @@ const initialState: SideMenuState = {
                 },
                 {
                     icon: "Trello",
+                    title: "Payments",
+                    subMenu: [
+                        {
+                            icon: "Activity",
+                            pathname: "/re-payment",
+                            title: "Create-Payment",
+                        },
+                    ],
+                },
+                {
+                    icon: "Trello",
                     title: "Collaterals",
                     subMenu: [
                         {

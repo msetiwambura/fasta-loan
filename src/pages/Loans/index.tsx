@@ -13,6 +13,7 @@ import {
 import { Dialog } from "../../base-components/Headless";
 import Button from "../../base-components/Button";
 import Table from "../../base-components/Table";
+import Swal from "sweetalert2";
 
 interface Loan {
     Id: number;
@@ -46,17 +47,21 @@ interface ApiResponse {
 }
 
 function Main() {
-    const [headerFooterModalPreview, setHeaderFooterModalPreview] = useState(false);
     const [loans, setLoans] = useState<Loan[]>([]);
     const [token] = useState(localStorage.getItem('chanelToken') || '');
     const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [itemsPerPage] = useState(10);
-    const sendButtonRef = useRef(null);
+    const [repaymentModal, setRepaymentModal] = useState(false);
+    const [repaymentDetails, setRepaymentDetails] = useState({
+        LoanID: 0,
+        PaymentAmount: 0,
+        PaymentDate: "",
+        PaymentMethod: "Bank Transfer",
+    });
 
     useEffect(() => {
-        // Fetch data with pagination
         axios.get<ApiResponse>(`http://localhost:8080/api/loans?page=${currentPage}&limit=${itemsPerPage}`, {
             headers: {
                 'ChannelID': 'LN',
@@ -66,7 +71,6 @@ function Main() {
         })
             .then(response => {
                 if (response.data.ResponseHeader.StatusCode === 1000) {
-                    // Extract data from the response
                     const { CurrentPage, Loans, TotalItems, TotalPages } = response.data.ResponseBody;
                     setLoans(Loans);
                     setCurrentPage(CurrentPage);
@@ -82,7 +86,53 @@ function Main() {
 
     const handleViewClick = (loan: Loan) => {
         setSelectedLoan(loan);
-        setHeaderFooterModalPreview(true);
+        setRepaymentDetails(prevState => ({
+            ...prevState,
+            LoanID: loan.Id
+        }));
+        setRepaymentModal(true);
+    };
+
+    const handleRepaymentChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setRepaymentDetails(prevState => ({
+            ...prevState,
+            [name]: name === "PaymentAmount" ? parseFloat(value) || 0 : value,
+        }));
+    };
+
+    const handleRepaymentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post('http://localhost:8080/api/payments', repaymentDetails, {
+                headers: {
+                    'ChannelId': 'LN',
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (response.data.ResponseHeader.StatusCode === 1000) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: response.data.ResponseBody.Message,
+                });
+                setRepaymentModal(false);
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: response.data.ResponseHeader.StatusDesc,
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Failed to process payment.',
+            });
+        }
     };
 
     const handlePageChange = (page: number) => {
@@ -130,7 +180,7 @@ function Main() {
                                                     <Table.Td>{loan.Status}</Table.Td>
                                                     <Table.Td>
                                                         <Button variant="primary" onClick={() => handleViewClick(loan)}>
-                                                            View
+                                                            Repay
                                                         </Button>
                                                     </Table.Td>
                                                 </Table.Tr>
@@ -159,98 +209,79 @@ function Main() {
                 </Button>
             </div>
 
+            {/* Repayment Modal */}
             <Dialog
                 size="lg"
-                open={headerFooterModalPreview}
-                onClose={() => setHeaderFooterModalPreview(false)}
-                initialFocus={sendButtonRef}
+                open={repaymentModal}
+                onClose={() => setRepaymentModal(false)}
                 className="max-w-4xl mx-auto" // Increased modal width
             >
                 <Dialog.Panel className="p-6 bg-white rounded-lg shadow-lg">
                     <Dialog.Title className="text-2xl font-semibold mb-4">
-                        Loan Details
+                        Repay Loan
                     </Dialog.Title>
-                    <Dialog.Description className="grid grid-cols-12 gap-6">
-                        <div className="col-span-12 sm:col-span-6">
-                            <FormLabel htmlFor="modal-form-customer-name" className="font-medium">Customer Name</FormLabel>
-                            <FormInput
-                                id="modal-form-customer-name"
-                                type="text"
-                                value={`${selectedLoan?.Customer.CustomerFirstName || ''} ${selectedLoan?.Customer.CustomerLastName || ''}`}
-                                readOnly
-                                className="border-gray-300 rounded-lg"
-                            />
+                    <form onSubmit={handleRepaymentSubmit}>
+                        <div className="grid grid-cols-12 gap-6">
+                            <div className="col-span-12 sm:col-span-6">
+                                <FormLabel htmlFor="loan-id" className="font-medium">Loan ID</FormLabel>
+                                <FormInput
+                                    id="loan-id"
+                                    name="LoanID"
+                                    type="text"
+                                    value={repaymentDetails.LoanID}
+                                    readOnly
+                                    className="border-gray-300 rounded-lg"
+                                />
+                            </div>
+                            <div className="col-span-12 sm:col-span-6">
+                                <FormLabel htmlFor="payment-amount" className="font-medium">Payment Amount</FormLabel>
+                                <FormInput
+                                    id="payment-amount"
+                                    name="PaymentAmount"
+                                    type="number"
+                                    value={repaymentDetails.PaymentAmount}
+                                    onChange={handleRepaymentChange}
+                                    className="border-gray-300 rounded-lg"
+                                    required
+                                />
+                            </div>
+                            <div className="col-span-12 sm:col-span-6">
+                                <FormLabel htmlFor="payment-date" className="font-medium">Payment Date</FormLabel>
+                                <FormInput
+                                    id="payment-date"
+                                    name="PaymentDate"
+                                    type="date"
+                                    value={repaymentDetails.PaymentDate}
+                                    onChange={handleRepaymentChange}
+                                    className="border-gray-300 rounded-lg"
+                                    required
+                                />
+                            </div>
+                            <div className="col-span-12 sm:col-span-6">
+                                <FormLabel htmlFor="payment-method" className="font-medium">Payment Method</FormLabel>
+                                <select
+                                    id="payment-method"
+                                    name="PaymentMethod"
+                                    value={repaymentDetails.PaymentMethod}
+                                    onChange={handleRepaymentChange}
+                                    className="border-gray-300 rounded-lg w-full"
+                                    required
+                                >
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Credit Card">Credit Card</option>
+                                    <option value="Cash">Cash</option>
+                                </select>
+                            </div>
                         </div>
-                        <div className="col-span-12 sm:col-span-6">
-                            <FormLabel htmlFor="modal-form-loan-amount" className="font-medium">Loan Amount</FormLabel>
-                            <FormInput
-                                id="modal-form-loan-amount"
-                                type="text"
-                                value={selectedLoan?.LoanAmount || ''}
-                                readOnly
-                                className="border-gray-300 rounded-lg"
-                            />
+                        <div className="flex justify-end mt-4">
+                            <Button variant="secondary" onClick={() => setRepaymentModal(false)} className="mr-4">
+                                Cancel
+                            </Button>
+                            <Button variant="primary" type="submit">
+                                Repay
+                            </Button>
                         </div>
-                        <div className="col-span-12 sm:col-span-6">
-                            <FormLabel htmlFor="modal-form-currency" className="font-medium">Currency</FormLabel>
-                            <FormInput
-                                id="modal-form-currency"
-                                type="text"
-                                value={selectedLoan?.LoanCurrency || ''}
-                                readOnly
-                                className="border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="col-span-12 sm:col-span-6">
-                            <FormLabel htmlFor="modal-form-interest-rate" className="font-medium">Interest Rate</FormLabel>
-                            <FormInput
-                                id="modal-form-interest-rate"
-                                type="text"
-                                value={selectedLoan?.InterestRate || ''}
-                                readOnly
-                                className="border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="col-span-12 sm:col-span-6">
-                            <FormLabel htmlFor="modal-form-start-date" className="font-medium">Start Date</FormLabel>
-                            <FormInput
-                                id="modal-form-start-date"
-                                type="text"
-                                value={selectedLoan?.StartDate || ''}
-                                readOnly
-                                className="border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="col-span-12 sm:col-span-6">
-                            <FormLabel htmlFor="modal-form-end-date" className="font-medium">End Date</FormLabel>
-                            <FormInput
-                                id="modal-form-end-date"
-                                type="text"
-                                value={selectedLoan?.EndDate || ''}
-                                readOnly
-                                className="border-gray-300 rounded-lg"
-                            />
-                        </div>
-                        <div className="col-span-12 sm:col-span-6">
-                            <FormLabel htmlFor="modal-form-status" className="font-medium">Status</FormLabel>
-                            <FormInput
-                                id="modal-form-status"
-                                type="text"
-                                value={selectedLoan?.Status || ''}
-                                readOnly
-                                className="border-gray-300 rounded-lg"
-                            />
-                        </div>
-                    </Dialog.Description>
-                    <div className="flex justify-end mt-4">
-                        <Button
-                            ref={sendButtonRef}
-                            variant="primary"
-                            onClick={() => setHeaderFooterModalPreview(false)}
-                        >
-                            Close
-                        </Button>
-                    </div>
+                    </form>
                 </Dialog.Panel>
             </Dialog>
         </>

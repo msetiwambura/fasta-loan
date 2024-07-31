@@ -58,7 +58,7 @@ function Main(props: { layout?: "side-menu" | "simple-menu" | "top-menu" }) {
                             ])}
                         >
               {" "}
-                            Fasta-Loan{" "}
+                            Mkopo-Fasta{" "}
             </span>
                     </Link>
                     {/* END: Logo */}

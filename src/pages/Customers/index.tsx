@@ -3,9 +3,8 @@ import axios from "axios";
 import { PreviewComponent, Preview } from "../../base-components/PreviewComponent";
 import Table from "../../base-components/Table";
 import Button from "../../base-components/Button";
-import { Dialog, Menu } from "../../base-components/Headless";
+import { Dialog } from "../../base-components/Headless";
 import { FormLabel, FormInput, FormSelect } from "../../base-components/Form";
-import Lucide from "../../base-components/Lucide";
 import Swal from 'sweetalert2';
 import { useNavigate } from "react-router-dom";
 
@@ -107,7 +106,6 @@ function Main() {
                             confirmButtonText: 'OK',
                             confirmButtonColor: '#3085d6',
                         }).then(() => {
-                            // Delay the navigation by 500 milliseconds
                             setTimeout(() => {
                                 navigate('/customers'); // Adjust the path if needed
                             }, 500);
@@ -200,7 +198,7 @@ function Main() {
                 </Button>
             </div>
 
-            {/* New Modal Content */}
+            {/* Edit Customer Modal */}
             <Dialog
                 open={headerFooterModalPreview}
                 onClose={closeModal}
@@ -340,25 +338,14 @@ function Main() {
                             </>
                         )}
                     </Dialog.Description>
-                    <Dialog.Footer>
-                        <Button
-                            type="button"
-                            variant="outline-secondary"
-                            onClick={closeModal}
-                            className="w-20 mr-1"
-                        >
+                    <div className="mt-4 text-right">
+                        <Button variant="secondary" className="mr-1" onClick={closeModal}>
                             Cancel
                         </Button>
-                        <Button
-                            variant="primary"
-                            type="button"
-                            className="w-20"
-                            ref={sendButtonRef}
-                            onClick={handleUpdate}
-                        >
+                        <Button variant="primary" onClick={handleUpdate}>
                             Update
                         </Button>
-                    </Dialog.Footer>
+                    </div>
                 </Dialog.Panel>
             </Dialog>
         </>
